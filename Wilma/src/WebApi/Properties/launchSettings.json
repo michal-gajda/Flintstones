@@ -1,0 +1,16 @@
+﻿{
+  "$schema": "https://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "http": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": false,
+      "applicationUrl": "http://localhost:5081",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "OTEL_SERVICE_NAME": "wilma",
+        "OTEL_RESOURCE_ATTRIBUTES": "service.namespace=flintstones,service.instance.id=instance-local-01,service.version=1.0.0,deployment.environment=staging"
+      }
+    }
+  }
+}
