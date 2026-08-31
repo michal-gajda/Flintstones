@@ -1,0 +1,56 @@
+networks:
+  flintstones-network:
+    driver: bridge
+
+services:
+  aspire-dashboard:
+    image: mcr.microsoft.com/dotnet/aspire-dashboard:13
+    environment:
+      - DOTNET_DASHBOARD_UNSECURED_ALLOW_ANONYMOUS=true
+      - DOTNET_DASHBOARD_OTLP_ENDPOINT_URL=http://+:18889
+      - DOTNET_DASHBOARD_OTLP_HTTP_ENDPOINT_URL=http://+:18890
+    ports:
+      - "18888:18888"
+    networks:
+      - flintstones-network
+
+  otel-collector:
+    image: otel/opentelemetry-collector:latest
+    networks:
+      - flintstones-network
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    command: ["--config", "/etc/otel-collector-config.yaml"]
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  fred-webui:
+    image: fred-webui:latest
+    container_name: fred-webui
+    build:
+      context: ./Fred/src
+      dockerfile: Dockerfile
+    environment:
+      - WILMA__ADDRESS=http://wilma-webapi:5080
+      - OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+      - OTEL_SERVICE_NAME=fred
+      - OTEL_RESOURCE_ATTRIBUTES=service.namespace=flintstones,service.instance.id=instance-local-01,service.version=1.0.0,deployment.environment=staging
+    ports:
+      - "5080:5080"
+    networks:
+      - flintstones-network
+
+  wilma-webapi:
+    image: wilma-webapi:latest
+    container_name: wilma-webapi
+    build:
+      context: ./Wilma/src
+      dockerfile: Dockerfile
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
+      - OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+      - OTEL_SERVICE_NAME=wilma
+      - OTEL_RESOURCE_ATTRIBUTES=service.namespace=flintstones,service.instance.id=instance-local-01,service.version=1.0.0,deployment.environment=staging
+    networks:
+      - flintstones-network

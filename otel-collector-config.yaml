@@ -1,0 +1,46 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  filter:
+    trace_conditions:
+      - 'span.attributes["url.path"] == "/healthz"'
+  batch:
+    timeout: 5s
+    send_batch_size: 1024
+
+exporters:
+  otlphttp:
+    endpoint: http://host.docker.internal:4318
+    sending_queue:
+      enabled: false
+    retry_on_failure:
+      enabled: false
+    tls:
+      insecure: true
+  otlphttp/aspire:
+    endpoint: http://aspire-dashboard:18890
+    tls:
+      insecure: true
+    encoding: proto
+    compression: none
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [filter, batch]
+      exporters: [otlphttp, otlphttp/aspire]
+    metrics:
+      receivers: [otlp]
+      processors: [filter, batch]
+      exporters: [otlphttp, otlphttp/aspire]
+    logs:
+      receivers: [otlp]
+      processors: [filter, batch]
+      exporters: [otlphttp, otlphttp/aspire]

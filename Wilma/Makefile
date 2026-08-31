@@ -3,3 +3,6 @@ build:
 
 run:
 	dotnet run --project src/WebApi/Wilma.WebApi.csproj
+
+image:
+	docker build -t wilma-webapi .

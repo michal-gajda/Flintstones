@@ -7,7 +7,6 @@ public static class ServiceExtensions
 {
     extension(IServiceCollection services)
     {
-
         public IServiceCollection AddApplication()
         {
             services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
