@@ -2,6 +2,7 @@
 
 ```plantuml
 @startuml
+allowmixing
 package "Fred" {
   package "src/Application" {
     class Queries
