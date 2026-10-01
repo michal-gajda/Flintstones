@@ -1,6 +1,7 @@
-using Microsoft.AspNetCore.Mvc;
-
 namespace Wilma.WebApi.Controllers;
+
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 [ApiController]
 [Route("[controller]")]
@@ -12,6 +13,7 @@ public class WeatherForecastController : ControllerBase
     ];
 
     [HttpGet(Name = "GetWeatherForecast")]
+    [EnableRateLimiting("TokenBucketPolicy")]
     public IEnumerable<WeatherForecast> Get()
     {
         return Enumerable.Range(1, 5).Select(index => new WeatherForecast

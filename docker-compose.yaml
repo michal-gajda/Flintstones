@@ -28,7 +28,7 @@ services:
     image: fred-webui:latest
     container_name: fred-webui
     build:
-      context: ./Fred/src
+      context: ./Fred
       dockerfile: Dockerfile
     environment:
       - WILMA__ADDRESS=http://wilma-webapi:5080
@@ -45,7 +45,7 @@ services:
     image: wilma-webapi:latest
     container_name: wilma-webapi
     build:
-      context: ./Wilma/src
+      context: ./Wilma
       dockerfile: Dockerfile
     environment:
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318

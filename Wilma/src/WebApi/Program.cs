@@ -1,5 +1,6 @@
 namespace Wilma.WebApi;
 
+using Microsoft.AspNetCore.RateLimiting;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
@@ -55,6 +56,32 @@ public sealed class Program
 
         builder.Services.AddControllers();
         builder.Services.AddOpenApi();
+
+        builder.Services.AddRateLimiter(options =>
+        {
+            options.AddTokenBucketLimiter("TokenBucketPolicy", limiterOptions =>
+            {
+                limiterOptions.TokenLimit = 10;
+                limiterOptions.ReplenishmentPeriod = TimeSpan.FromSeconds(10);
+                limiterOptions.TokensPerPeriod = 5;
+                limiterOptions.AutoReplenishment = true;
+                limiterOptions.QueueLimit = 2;
+            });
+
+            options.OnRejected = async (context, cancellationToken) =>
+            {
+                var logger = context.HttpContext.RequestServices
+                    .GetRequiredService<ILogger<Program>>();
+
+                var path = context.HttpContext.Request.Path;
+                var ip = context.HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+
+                logger.LogWarning("Rate limit exceeded for IP: {IpAddress} on path: {Path}", ip, path);
+
+                context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+                await context.HttpContext.Response.WriteAsync("Too many requests. Please try again later.", cancellationToken);
+            };
+        });
 
         var app = builder.Build();
 
